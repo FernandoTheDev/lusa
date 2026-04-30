@@ -1,0 +1,28 @@
+# Executáveis
+*.exe
+*.out
+*.app
+lusa          
+
+# Bytecodes gerados (LusaLang)
+*.bc
+embedded_temp.bc
+
+# Objetos e Símbolos de Debug
+*.o
+*.obj
+*.pdb        
+*.ilk
+
+# Pastas de IDEs (VSCode, Visual Studio, etc)
+.vscode/
+.vs/
+
+# Pastas de compilação do CMake
+build/
+build_prod/
+out/          
+
+# Arquivos temporários de SO
+.DS_Store     
+Thumbs.db     
