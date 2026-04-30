@@ -30,15 +30,7 @@ A premissa é que você não deveria ter que escolher entre clareza e velocidade
 
 ### Instalação
 
-```sh
-git clone https://github.com/lusalang/lusa.git
-cd lusa
-cmake -B build
-cmake --build build
-export PATH="$PATH:$(pwd)/bin"
-
-lusa --version
-```
+[🔗 LusaLang Alpha Release](https://github.com/lusalang/lusa/releases/tag/alpha)
 
 ### Hello, World!
 
