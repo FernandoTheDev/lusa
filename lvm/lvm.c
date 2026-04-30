@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdint.h>
 
-#include "vm.h"
+#include "lvm.h"
 
 #define GET_OPCODE(inst) ((inst >> 24) & 0xFF)
 #define GET_REGA(inst) ((inst >> 16) & 0xFF)
