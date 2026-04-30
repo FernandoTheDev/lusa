@@ -33,7 +33,8 @@ A premissa é que você não deveria ter que escolher entre clareza e velocidade
 ```sh
 git clone https://github.com/lusalang/lusa.git
 cd lusa
-cmake build
+cmake -B build
+cmake --build build
 export PATH="$PATH:$(pwd)/bin"
 
 lusa --version
