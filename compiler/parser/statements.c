@@ -10,7 +10,7 @@ static inline void var_declaration(){
     consume(TK_ID, "Esperava o nome de variavel apos 'var'.");
 
     char var_name[50];
-    lusa_strcpy(var_name, 50, parser.previus.text);
+    lusa_strcpy(var_name, 50, parser.previous.text);
 
     int tipo_var = TK_INT;
 
@@ -245,7 +245,7 @@ static void function_declaration(){
     consume(TK_ID, "Esperava o nome da funcao.");
 
     char fn_name[50];
-    lusa_strcpy(fn_name, 50, parser.previus.text);
+    lusa_strcpy(fn_name, 50, parser.previous.text);
 
     int jump_over = bc_size;
     emit_instruction(JMP, 0, 0, 0);
@@ -265,7 +265,7 @@ static void function_declaration(){
 
             consume(TK_ID, "Esperava nome do parametro");
             char param_name[50];
-            lusa_strcpy(param_name, 50, parser.previus.text);
+            lusa_strcpy(param_name, 50, parser.previous.text);
 
             int tipo_param = TK_INT;
             if (parser.current.type == TK_INT || parser.current.type == TK_FLOAT || parser.current.type == TK_STRING || parser.current.type == TK_BOOL){

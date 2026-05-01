@@ -52,6 +52,16 @@ int vm_run(const char* filepath){
         fread(strings, sizeof(char) * 100, read_str_count, file);
     }
 
+    //Le a quantidade de floats
+    double float_pool[100];
+    int read_flt_count = 0;
+    fread(&read_flt_count, sizeof(double), read_flt_count, file);
+
+    // 5. Se tiver float, le e joga no array 'float_pool'
+    if (read_flt_count > 0){
+        fread(float_pool, sizeof(double), read_flt_count, file);
+    }
+
     fclose(file);
 
     int isRunning = 1;
@@ -102,6 +112,11 @@ int vm_run(const char* filepath){
             case CMP:{
                 int64_t idx1 = reg[rB];
                 int64_t idx2 = reg[rC];
+                if(idx1 < 0 || idx1 >= read_str_count || idx2 < 0 || idx2 >= read_str_count){
+                    printf("[LVM]\033ERRO FATAL:\033 Indice de string invalido na comparacao");
+                    isRunning = 0;
+                    break;
+                }
                 if (strcmp(strings[idx1], strings[idx2]) == 0){
                     reg[rA] = 1;
                 } else {
@@ -141,6 +156,11 @@ int vm_run(const char* filepath){
                     printf("%" PRId64 "\n", reg[rC]);
                 } else if (rB == 2) {
                     int64_t idx = reg[rC];
+                    if (idx < 0 || idx >= read_str_count){
+                        printf("[VM] \033ERRO FATAL:\033 Tentativa de imprimir string inexistente (Index: %" PRId64 ")\n", idx);
+                        isRunning = 0;
+                        break;
+                    }
                     printf("%s\n", (char*)strings[idx]);
                 } else if (rB == 3){
                     double val = *((double*)&reg[rC]);
@@ -150,6 +170,17 @@ int vm_run(const char* filepath){
             }
             case LOAD_STR:{
                 reg[rA] = (rB << 8) | rC;
+                break;
+            }
+            case LOAD_FLT:{
+                uint16_t idx = (rB << 8) | rC;
+                if (idx >= read_flt_count || idx >= 100){
+                    printf("[LVM]\033ERRO FATAL:\003Tentativa de leitura fora dos limites (Float Pool Index: %d)\n", idx);
+                    isRunning = 0;
+                    break;
+                }
+                double value = float_pool[idx];
+                reg[rA] = *((int64_t*)&value);
                 break;
             }
             case RET: {
@@ -164,7 +195,7 @@ int vm_run(const char* filepath){
                 int64_t tamanho = reg[rB];
 
                 if(heap_pointer + tamanho >= heap_capacity){
-                    printf("[VM] ERRO FATAL: Out of Memory!\n");
+                    printf("[VM] \033PANIC:\003 Out of Memory!\n");
                     isRunning = 0;
                     break;
                 }

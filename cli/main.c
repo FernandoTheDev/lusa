@@ -3,6 +3,11 @@
 #include "../lvm/lvm.h"
 #include "lusa_utils.h"
 
+#ifdef _WIN32
+#define WIN32_LEAN_AND_MEAN
+#include <windows.h>
+#endif
+
 #define LUSA_MAGIC 0x4C555341
 
 int ends_with(const char *str, const char* suffix){
@@ -124,6 +129,10 @@ int check_embedded_and_run(const char* current_exe){
 }
 
 int main(int argc, char* argv[]){
+
+    #ifdef _WIN32
+        SetConsoleOutputCP(CP_UTF8);
+    #endif
 
     if (check_embedded_and_run(argv[0])){
         return 0;

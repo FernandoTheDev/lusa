@@ -40,6 +40,8 @@ typedef enum {
 typedef struct {
     TokenType type;
     char text[100];
+    int line;
+    int col;
 } Token;
 
 void init_lexer(const char* source_code);

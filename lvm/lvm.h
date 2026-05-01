@@ -20,6 +20,7 @@ typedef enum {
     CALL_EXT,
     RET,
     LOAD_STR,
+    LOAD_FLT,
     ALLOC,
     STORE,
     PUSH,

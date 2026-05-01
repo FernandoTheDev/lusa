@@ -6,6 +6,7 @@
 #include "../codegen.h"
 #include "../../lvm/lvm.h"
 #include "lusa_string.h"
+#include "../codegen.h"
 
 TokenType expression(int target_reg);
 
@@ -13,7 +14,7 @@ int factor(int target_reg){
     switch(parser.current.type){
         case TK_INT:{
             advance();
-            int valor = atoi(parser.previus.text);
+            int valor = atoi(parser.previous.text);
             uint8_t high = (valor >> 8) & 0xFF;
             uint8_t low = valor & 0xFF;
             emit_instruction(LOAD, target_reg, high, low);
@@ -21,16 +22,17 @@ int factor(int target_reg){
         }
         case TK_FLOAT:{
             advance();
-            float valor = atof(parser.previus.text);
+            float valor = atof(parser.previous.text);
+            int flt_inx = float_count++;
             uint8_t high = ((int)valor >> 8) & 0xFF;
             uint8_t low = (int)valor & 0xFF;
-            emit_instruction(LOAD, target_reg, high, low);
+            emit_instruction(LOAD_FLT, target_reg, high, low);
             return TK_FLOAT;
         }
         case TK_ID:{
             advance();
             char target_name[50];
-            lusa_strcpy(target_name, 50, parser.previus.text);
+            lusa_strcpy(target_name, 50, parser.previous.text);
 
             int return_type = TK_ERROR;
 
@@ -106,7 +108,7 @@ int factor(int target_reg){
                 int reg_origem = find_var(target_name);
 
                 if(reg_origem == -1){
-                    printf("[COMPILADOR] ERRO: Variavel '%s' nao declarada.\n", parser.previus.text);
+                    printf("[COMPILADOR] ERRO: Variavel '%s' nao declarada.\n", parser.previous.text);
                     parser.hadError = 1;
                 } else {
                     emit_instruction(MOV, target_reg, reg_origem, 0);
@@ -132,7 +134,7 @@ int factor(int target_reg){
         case TK_STRING:{
             advance();
             int str_idx = string_count++;
-            lusa_strcpy(string_pool[str_idx], 100, parser.previus.text);
+            lusa_strcpy(string_pool[str_idx], 100, parser.previous.text);
             
             uint8_t high = (str_idx >> 8) & 0xFF;
             uint8_t low = str_idx & 0xFF;
@@ -181,7 +183,6 @@ int factor(int target_reg){
             return TK_ARRAY;
         }
         default:
-            printf("[COMPILADOR] ERRO de sintaxe: esperava um numero ou variavel. Encontrado: '%s' (%d)\n", parser.current.text, parser.current.type);
             parser.hadError = 1;
     }
     return TK_ERROR;

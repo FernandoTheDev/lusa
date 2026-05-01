@@ -4,7 +4,7 @@
 Parser parser;
 
 void advance(){
-    parser.previus = parser.current;
+    parser.previous = parser.current;
     parser.current = next_token();
 
     while(parser.current.type == TK_ERROR){
@@ -18,6 +18,10 @@ void consume(TokenType type, const char* message){
         advance();
         return;
     }
-    printf("Erro de sintaxe: %s (Encontrado '%s')\n", message, parser.current.text);
+    if (type == TK_SEMICOLON || type == TK_RPAREN || type == TK_RBRACKET || type == TK_RBRACE) {
+         printf("\033[1;31m[ERRO]\033[0m %s:%d:%d \n -> %s\n -> Logo apos: '%s'\n", parser.filepath, parser.previous.line, parser.previous.col,  message, parser.previous.text);
+    } else {
+        printf("\033[1;31m[ERRO]\033[0m %s:%d:%d \n -> %s\n -> Encontrado: '%s'\n", parser.filepath, parser.current.line, parser.current.col, message, parser.current.text);
+    }
     parser.hadError = 1;
 }

@@ -1,19 +1,7 @@
-var ligado = true;
+var numero = 2;
 
-if (ligado == true) {
-    var saudacao = "Ola, Mundo da LusaLang!";
-    print_str(saudacao);
-} else {
-    var erro = "Isso nao deve aparecer.";
-    print_str(erro);
-}
+print(3.5 + 1.3)
 
-var lista = [100, 200, 300];
+if(){
 
-// Deve imprimir 200
-print(lista[1]); 
-
-lista[1] = 999;
-
-// Deve imprimir 999
-print(lista[1]);
+    var

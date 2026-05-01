@@ -4,8 +4,9 @@
 
 typedef struct {
     Token current;
-    Token previus;
+    Token previous;
     int hadError;
+    char filepath[256];
 } Parser;
 
 extern Parser parser;

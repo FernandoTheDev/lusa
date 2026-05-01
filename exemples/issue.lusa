@@ -3,7 +3,7 @@ var sla2 int = 20;
 var opr string = "+";
 
 fn calcular(a int, b int, slakk string){
-    if slakk == "+"{
+    if slakk == "-+"{
         print(sla + sla2);
     }
     else if slakk == "-"{

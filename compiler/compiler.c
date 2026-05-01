@@ -8,6 +8,7 @@
 #include "codegen.h"
 #include "parser/parser.h"
 #include "lusa_utils.h"
+#include "lusa_string.h"
 
 int compile(const char* in_filepath, const char* out_filepath){
     FILE* file_in;
@@ -32,6 +33,8 @@ int compile(const char* in_filepath, const char* out_filepath){
     func_counter = 0;
     parser.hadError = 0;
 
+    lusa_strcpy(parser.filepath, sizeof(parser.filepath), in_filepath);
+
     advance();
 
     while(parser.current.type != TK_EOF){
@@ -46,6 +49,10 @@ int compile(const char* in_filepath, const char* out_filepath){
         fwrite(bytecode, sizeof(uint32_t), bc_size, file_out);
         fwrite(&string_count, sizeof(int), 1, file_out);
         fwrite(string_pool, sizeof(char) * 100, string_count, file_out);
+        fwrite(&float_count, sizeof(int), 1, file_out);
+        if (float_count > 0){
+            fwrite(float_pool, sizeof(double), float_count, file_out);
+        }
         fclose(file_out);
     }
 
