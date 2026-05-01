@@ -22,7 +22,7 @@ int vm_run(const char* filepath){
 
     char strings[100][100];
 
-    int heap_capacity = 4096 * 4096;
+    int heap_capacity = 8192 * 8192;
     int64_t* heap = (int64_t*)calloc(heap_capacity, sizeof(int64_t));
     int heap_pointer = 0;
     if (heap == NULL){
