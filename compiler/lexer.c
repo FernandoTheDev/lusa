@@ -130,11 +130,27 @@ Token next_token(){
 
     if (isdigit(code)){
         int i = 0;
-        while(isdigit(source[counter])){
+        int isFloat = 0;
+        while(isdigit(source[counter]) || source[counter] == '.'){
+            if (source[counter] == '.'){
+                if (isFloat >= 1){
+                    token.type = TK_ERROR;
+                    lusa_strcpy(token.text, sizeof(token.text), "Numero com multiplos pontos decimais");
+                    return token;
+                } else {
+                isFloat = 1;
+            }
+            }
             token.text[i++] = source[counter++];
         }
         token.text[i] = '\0';
-        token.type = TK_NUMBER;
+
+        if(isFloat){
+            token.type = TK_FLOAT;
+        } else {
+            token.type = TK_INT;
+        }
+
         return token;
     }
 

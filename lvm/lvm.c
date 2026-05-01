@@ -129,15 +129,16 @@ int vm_run(const char* filepath){
                 if (rB == 1){
                     printf("%" PRId64 "\n", reg[rC]);
                 } else if (rB == 2) {
-                    printf("%s\n", (char*)reg[rC]);
-                } else {
-                    return -1;
+                    int64_t idx = reg[rC];
+                    printf("%s\n", (char*)strings[idx]);
+                } else if (rB == 3){
+                    double val = *((double*)&reg[rC]);
+                    printf("%f\n", val);
                 }
                 break;
             }
             case LOAD_STR:{
-                uint16_t str_idx = (rB << 8) | rC;
-                reg[rA] = (uint64_t)(strings[str_idx]);
+                reg[rA] = (rB << 8) | rC;
                 break;
             }
             case RET: {

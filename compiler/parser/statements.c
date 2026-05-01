@@ -25,7 +25,14 @@ static inline void var_declaration(){
     if (parser.current.type == TK_EQUAL){
         advance();
         if(reg_id != -1){
-            expression(reg_id);
+            int real_type = expression(reg_id);
+
+            for(int i = 0; i < symbol_counter; i++){
+                if(strcmp(table[i].name, var_name) == 0){
+                    table[i].tipo = real_type;
+                    break;
+                }
+            }
         }
     } else {
         if (reg_id != -1) emit_instruction(LOAD, reg_id, 0, 0);
@@ -113,22 +120,25 @@ static void find_if(){
 static void assignment() {
     char target_name[50];
     lusa_strcpy(target_name, 50, parser.current.text);
+
     advance(); 
     
     if (parser.current.type == TK_LPAREN) {
         if (strcmp(target_name, "print") == 0) {
             advance(); 
-            expression(0); 
+            //expression(0); // <--- OLHE O ASSASSINO AQUI!
+            int temp_reg = next_reg_free++;
+            int found_type = expression(temp_reg);
             consume(TK_RPAREN, "Esperava ')' apos print.");
-            emit_instruction(CALL_EXT, 0, 1, 0);
+            if(found_type == TK_STRING){
+                emit_instruction(CALL_EXT, 0, 2, temp_reg);
+            } else if(found_type == TK_FLOAT) {
+                emit_instruction(CALL_EXT, 0, 3, temp_reg);
+            } else{
+            emit_instruction(CALL_EXT, 0, 1, temp_reg);
+            }
+            next_reg_free--;
             consume(TK_SEMICOLON, "Esperava ';' no final do print.");
-            return;
-        } else if (strcmp(target_name, "print_str") == 0){
-            advance();
-            expression(0);
-            consume(TK_RPAREN, "Esperava ')' apos o print_str");
-            emit_instruction(CALL_EXT, 0, 2, 0);
-            consume(TK_SEMICOLON, "Esperava ';' no final do print_str");
             return;
         }
         
@@ -213,8 +223,15 @@ static void assignment() {
         }
 
         advance(); 
-        expression(reg_id);
+        int value_type = expression(reg_id);
         consume(TK_SEMICOLON, "Esperava ';' no final da atribuicao.");
+ 
+        for(int i = 0; i < symbol_counter; i++){
+            if(strcmp(table[i].name, target_name) == 0){
+                table[i].tipo = value_type;
+                break;
+            }
+        }
         return;
     } else {
         printf("[COMPILADOR] ERRO de Sintaxe: O que voce quis fazer com '%s'?\n", target_name);

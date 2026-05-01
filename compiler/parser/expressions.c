@@ -8,85 +8,82 @@
 #include "../../lvm/lvm.h"
 #include "lusa_string.h"
 
-void expression(int target_reg);
+TokenType expression(int target_reg);
 
-void factor(int target_reg){
+int factor(int target_reg){
     switch(parser.current.type){
-        case TK_NUMBER:{
+        case TK_INT:{
             advance();
             int valor = atoi(parser.previus.text);
             uint8_t high = (valor >> 8) & 0xFF;
             uint8_t low = valor & 0xFF;
             emit_instruction(LOAD, target_reg, high, low);
-            break;
+            return TK_INT;
+        }
+        case TK_FLOAT:{
+            advance();
+            float valor = atof(parser.previus.text);
+            uint8_t high = ((int)valor >> 8) & 0xFF;
+            uint8_t low = (int)valor & 0xFF;
+            emit_instruction(LOAD, target_reg, high, low);
+            return TK_FLOAT;
         }
         case TK_ID:{
             advance();
             char target_name[50];
             lusa_strcpy(target_name, 50, parser.previus.text);
 
+            int return_type = TK_ERROR;
+
             if (parser.current.type == TK_LPAREN){
-                if (strcmp(target_name, "print") == 0){
-                    advance();
-                    expression(0);
-                    consume(TK_RPAREN, "esperava ')' apos print.");
-                    emit_instruction(CALL_EXT, 0, 1, 0);
-                    return;
-                } else if(strcmp(target_name, "print_str") == 0) {
-                    advance();
-                    expression(0);
-                    consume(TK_RPAREN, "esperava ')' apos o print_str");
-                    emit_instruction(LOAD_STR, 0, 2, 0);
-                    consume(TK_SEMICOLON, "Esperava ';' no final do print_str");
-                    return;
-                } else{
-                    int dest_pc = -1;
-                    int fn_index = -1;
-                    for (int i = 0; i < func_counter; i++){
-                        if(strcmp(func_table[i].name, target_name) == 0){ 
-                            dest_pc = func_table[i].start_pc;
-                            fn_index = i;
-                        }
+                advance();
+                int dest_pc = -1;
+                int fn_index = -1;
+                for (int i = 0; i < func_counter; i++){
+                    if(strcmp(func_table[i].name, target_name) == 0){ 
+                        dest_pc = func_table[i].start_pc;
+                        fn_index = i;
+                    }
+                } 
+
+                if (dest_pc == -1){
+                    printf("[COMPILADOR] ERRO: funcao '%s' nao existe.\n", target_name);
+                    parser.hadError = 1;
+                } else {
+                    int args_read = 0;
+                    if(parser.current.type != TK_RPAREN){
+                        do {
+                            if (parser.current.type == TK_COMMA) advance();
+
+                            if (args_read >= func_table[fn_index].arity){
+                                printf("[COMPILADOR] ERRO: Muitos argumentos passados para a funcao '%s'.\n", target_name);
+                                parser.hadError = 1;
+                                break;
+                            }
+
+                            int temp_arg_reg = next_reg_free++;
+                            expression(temp_arg_reg);
+
+                            int target_param_reg = func_table[fn_index].param_reg[args_read];
+                            emit_instruction(MOV, target_param_reg, temp_arg_reg, 0);
+
+                            next_reg_free--;
+                            args_read++;
+                        } while (parser.current.type == TK_COMMA);
                     } 
 
-                    if (dest_pc == -1){
-                        printf("[COMPILADOR] ERRO: funcao '%s' nao existe.\n", target_name);
+                    if (args_read < func_table[fn_index].arity){
+                        printf("[COMPILADOR] ERRO: funcao '%s' esperava '%d' argumentos, recebeu %d.\n", target_name, func_table[fn_index].arity, args_read);
                         parser.hadError = 1;
-                    } else {
-                        int args_read = 0;
-                        if(parser.current.type != TK_RPAREN){
-                            do {
-                                if (parser.current.type == TK_COMMA) advance();
-
-                                if (args_read >= func_table[fn_index].arity){
-                                    printf("[COMPILADOR] ERRO: Muitos argumentos passados para a funcao '%s'.\n", target_name);
-                                    parser.hadError = 1;
-                                    break;
-                                }
-
-                                int temp_arg_reg = next_reg_free++;
-                                expression(temp_arg_reg);
-
-                                int target_param_reg = func_table[fn_index].param_reg[args_read];
-                                emit_instruction(MOV, target_param_reg, temp_arg_reg, 0);
-
-                                next_reg_free--;
-                                args_read++;
-                            } while (parser.current.type == TK_COMMA);
-                        } 
-
-                        if (args_read < func_table[fn_index].arity){
-                            printf("[COMPILADOR] ERRO: funcao '%s' esperava '%d' argumentos, recebeu %d.\n", target_name, func_table[fn_index].arity, args_read);
-                            parser.hadError = 1;
-                        }
-
-                        consume(TK_RPAREN, "Esperava ')' apos chamada de funcao");
-
-                        uint8_t rB = (dest_pc >> 8) & 0xFF;
-                        uint8_t rC = dest_pc & 0xFF;
-                        emit_instruction(CALL, 0, rB, rC);
-                        emit_instruction(MOV, target_reg, 0, 0);
                     }
+
+                    consume(TK_RPAREN, "Esperava ')' apos chamada de funcao");
+
+                    uint8_t rB = (dest_pc >> 8) & 0xFF;
+                    uint8_t rC = dest_pc & 0xFF;
+                    emit_instruction(CALL, 0, rB, rC);
+                    emit_instruction(MOV, target_reg, 0, 0);
+                    return_type = TK_INT;
                 }
             } else if(parser.current.type == TK_LBRACKET){
                 advance();
@@ -104,27 +101,35 @@ void factor(int target_reg){
                     emit_instruction(READ, target_reg, reg_origem, index_reg);
                 }
                 next_reg_free--;
+                return_type = TK_INT;
             } else {
 
-                int reg_origem = find_var(parser.previus.text);
+                int reg_origem = find_var(target_name);
 
                 if(reg_origem == -1){
                     printf("[COMPILADOR] ERRO: Variavel '%s' nao declarada.\n", parser.previus.text);
                     parser.hadError = 1;
                 } else {
                     emit_instruction(MOV, target_reg, reg_origem, 0);
+
+                    for (int i = 0; i < symbol_counter; i++){
+                        if(strcmp(table[i].name, target_name) == 0){
+                            return_type = table[i].tipo;
+                            break;
+                        }
+                    }
                 }
             }
-            break;
+            return return_type;
         }
         case TK_TRUE:
             advance();
             emit_instruction(LOAD, target_reg, 0, 1);
-            break;
+            return TK_TRUE;
         case TK_FALSE:
             advance();
             emit_instruction(LOAD, target_reg, 0, 0);
-            break;
+            return TK_FALSE;
         case TK_STRING:{
             advance();
             int str_idx = string_count++;
@@ -133,13 +138,13 @@ void factor(int target_reg){
             uint8_t high = (str_idx >> 8) & 0xFF;
             uint8_t low = str_idx & 0xFF;
             emit_instruction(LOAD_STR, target_reg, high, low);
-            break;
+            return TK_STRING;
         }
         case TK_LPAREN: {
             advance();
-            expression(target_reg);
+            int internal = expression(target_reg);
             consume(TK_RPAREN, "Esperava ')' apos a expressao");
-            break;
+            return internal;
         }
         case TK_LBRACKET: {
             advance();
@@ -174,16 +179,17 @@ void factor(int target_reg){
             bytecode[patch_pc] = (LOAD << 24) | (size_reg << 16) | ((count >> 8) & 0xFF) << 8 | (count & 0xFF);
 
             next_reg_free--;
-            break;
+            return TK_ARRAY;
         }
         default:
-            printf("[COMPILADOR] ERRO de sintaxe: esperava um numero ou variavel.");
+            printf("[COMPILADOR] ERRO de sintaxe: esperava um numero ou variavel. Encontrado: '%s' (%d)\n", parser.current.text, parser.current.type);
             parser.hadError = 1;
     }
+    return TK_ERROR;
 }
 
-void term(int target_reg){
-    factor(target_reg);
+int term(int target_reg){
+    int type = factor(target_reg);
 
     while(parser.current.type == TK_PLUS || parser.current.type == TK_MINUS){
         TokenType operator_type = parser.current.type;
@@ -197,11 +203,13 @@ void term(int target_reg){
             emit_instruction(SUB, target_reg, target_reg, temp_reg);
         }
         next_reg_free--;
+        type = TK_INT;
     }
+    return type;
 }
 
-void expression(int target_reg){
-    term(target_reg);
+TokenType expression(int target_reg){
+    int type = term(target_reg);
 
     if(parser.current.type == TK_EQEQ || parser.current.type == TK_LT || parser.current.type == TK_GT){
         TokenType op_type = parser.current.type;
@@ -219,4 +227,5 @@ void expression(int target_reg){
         }
         next_reg_free--;
     }
+    return type;
 }

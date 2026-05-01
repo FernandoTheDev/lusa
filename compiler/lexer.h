@@ -6,7 +6,6 @@ typedef enum {
     TK_EOF,
     TK_VAR,
     TK_ID,
-    TK_NUMBER,
     TK_INT,
     TK_FLOAT,
     TK_STRING,
@@ -35,6 +34,7 @@ typedef enum {
     TK_COMMA,
     TK_LBRACKET,
     TK_RBRACKET,
+    TK_ARRAY,
 } TokenType;
 
 typedef struct {

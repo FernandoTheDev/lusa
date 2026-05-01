@@ -13,6 +13,6 @@ extern Parser parser;
 void advance();
 void consume(TokenType type, const char* message);
 
-void expression(int target_reg);
+TokenType expression(int target_reg);
 
 void statement();

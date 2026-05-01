@@ -1,0 +1,3 @@
+var saudacao = "Ola, Mundo da LusaLang!";
+print(saudacao);
+print("Isso deveria imprimir alguma coisa");
