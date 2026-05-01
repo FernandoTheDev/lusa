@@ -268,7 +268,7 @@ static void function_declaration(){
             lusa_strcpy(param_name, 50, parser.previus.text);
 
             int tipo_param = TK_INT;
-            if (parser.current.type == TK_INT || parser.current.type == TK_FLOAT){
+            if (parser.current.type == TK_INT || parser.current.type == TK_FLOAT || parser.current.type == TK_STRING || parser.current.type == TK_BOOL){
                 tipo_param = parser.current.type;
                 advance();
             } else {

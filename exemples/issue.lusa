@@ -1,0 +1,17 @@
+var sla int = 10;
+var sla2 int = 20;
+var opr string = "+";
+
+fn calcular(a int, b int, slakk string){
+    if slakk == "+"{
+        print(sla + sla2);
+    }
+    else if slakk == "-"{
+        print(sla - sla2);
+    }
+    else {
+        print("operação não suportada");
+    }
+}
+
+calcular(sla, sla2, opr);

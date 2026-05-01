@@ -11,6 +11,7 @@ typedef enum {
     SUB, 
     FSUB,
     EQ,
+    CMP,
     LT,
     GT,
     JMP, 

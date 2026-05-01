@@ -1,6 +1,5 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
 #include "parser.h"
 
 #include "../symtab.h"
@@ -209,23 +208,28 @@ int term(int target_reg){
 }
 
 TokenType expression(int target_reg){
-    int type = term(target_reg);
+    int left_type = term(target_reg);
 
     if(parser.current.type == TK_EQEQ || parser.current.type == TK_LT || parser.current.type == TK_GT){
         TokenType op_type = parser.current.type;
         advance();
 
         int temp_reg = next_reg_free++;
-        term(temp_reg);
+        int right_type = term(temp_reg);
             
         if(op_type == TK_EQEQ){
-            emit_instruction(EQ, target_reg, target_reg, temp_reg);
+            if(left_type == TK_STRING && right_type == TK_STRING){
+                emit_instruction(CMP, target_reg, target_reg, temp_reg);
+            } else {
+                emit_instruction(EQ, target_reg, target_reg, temp_reg);
+            }
         } else if(op_type == TK_LT){
             emit_instruction(LT, target_reg, target_reg, temp_reg);
         } else if(op_type == TK_GT){
             emit_instruction(GT, target_reg, target_reg, temp_reg);
         }
         next_reg_free--;
+        return TK_BOOL;
     }
-    return type;
+    return left_type;
 }

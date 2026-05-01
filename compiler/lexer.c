@@ -154,9 +154,9 @@ Token next_token(){
         return token;
     }
 
-    if (isalpha(code) || code == '_' || code == '-'){
+    if (isalpha(code) || code == '_' || code == '-' || (unsigned char)code >= 128){
         int i = 0;
-        while(isalnum(source[counter]) || source[counter] == '_' || source[counter] == '-'){
+        while(isalnum(source[counter]) || source[counter] == '_' || source[counter] == '-' || (unsigned char)source[counter] >= 128){
             token.text[i++] = source[counter++];
         }
         token.text[i] = '\0';

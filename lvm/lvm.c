@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <inttypes.h>
+#include <string.h>
 
 #include "lvm.h"
 #include "lusa_utils.h"
@@ -96,6 +97,16 @@ int vm_run(const char* filepath){
             }
             case EQ:{
                 reg[rA] = (reg[rB] == reg[rC]) ? 1 : 0;
+                break;
+            }
+            case CMP:{
+                int64_t idx1 = reg[rB];
+                int64_t idx2 = reg[rC];
+                if (strcmp(strings[idx1], strings[idx2]) == 0){
+                    reg[rA] = 1;
+                } else {
+                    reg[rA] = 0;
+                }
                 break;
             }
             case LT: {
