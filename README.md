@@ -322,7 +322,6 @@ Lusa está longe de pronta — e não temos problema em admitir isso. Aqui está
 - **Ergonomia de sintaxe** — algumas construções ainda têm mais atrito do que deveriam; estamos refinando.
 - **Biblioteca padrão** — funções de string, matemática e I/O de arquivo.
 - **Módulos** — separação de código em múltiplos arquivos.
-- **Suporte explícito a múltiplas plataformas** — Windows e ARM na toolchain.
 
 ---
 
