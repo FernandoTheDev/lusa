@@ -23,9 +23,10 @@ int factor(int target_reg){
         case TK_FLOAT:{
             advance();
             float valor = atof(parser.previous.text);
-            int flt_inx = float_count++;
-            uint8_t high = ((int)valor >> 8) & 0xFF;
-            uint8_t low = (int)valor & 0xFF;
+            int flt_idx = float_count++;
+            float_pool[flt_idx] = valor;
+            uint8_t high = (flt_idx >> 8) & 0xFF;
+            uint8_t low = flt_idx & 0xFF;
             emit_instruction(LOAD_FLT, target_reg, high, low);
             return TK_FLOAT;
         }
@@ -189,23 +190,41 @@ int factor(int target_reg){
 }
 
 int term(int target_reg){
-    int type = factor(target_reg);
+    int left_type = factor(target_reg);
 
     while(parser.current.type == TK_PLUS || parser.current.type == TK_MINUS){
         TokenType operator_type = parser.current.type;
         advance();
         int temp_reg = next_reg_free++;
-        factor(temp_reg);
-
-        if (operator_type == TK_PLUS){
-        emit_instruction(ADD, target_reg, target_reg, temp_reg);
+        int right_type = factor(temp_reg);
+        if (left_type == TK_FLOAT || right_type == TK_FLOAT){
+            if (left_type != TK_FLOAT || right_type != TK_FLOAT){
+                printf("[COMPILADOR] \033[1;31mERRO:\033[0m nao eh possivel somar Float com outro tipo.\n");
+                parser.hadError = 1;
+            }
+            if (operator_type == TK_PLUS){
+                emit_instruction(FADD, target_reg, target_reg, temp_reg);
+            } else {
+                emit_instruction(FSUB, target_reg, target_reg, temp_reg);
+            }
+            left_type = TK_FLOAT;
+        } else if (left_type == TK_INT || right_type == TK_INT){
+            if (operator_type == TK_PLUS){
+                emit_instruction(ADD, target_reg, target_reg, temp_reg);
+            } else {
+                emit_instruction(SUB, target_reg, target_reg, temp_reg);
+            }
+            left_type = TK_INT;
+        } else if (left_type == TK_STRING && right_type == TK_STRING && operator_type == TK_PLUS){
+            printf("[COMPILADOR] \033[1;33mAVISO:\033[0m Concatenacao de strings (+) ainda nao implementada.\n");
+            parser.hadError = 1;
         } else {
-            emit_instruction(SUB, target_reg, target_reg, temp_reg);
+            printf("[COMPILADOR] \033[1;31mERRO:\033[0m Operacao invalida entre tipos.\n");
+            parser.hadError = 1;
         }
         next_reg_free--;
-        type = TK_INT;
     }
-    return type;
+    return left_type;
 }
 
 TokenType expression(int target_reg){

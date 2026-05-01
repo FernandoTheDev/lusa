@@ -1,7 +1,5 @@
-var numero = 2;
+var numero = 20.4;
 
-print(3.5 + 1.3)
+print(numero + 25.45);
 
-if(){
-
-    var
+//print("oi" + " mundo");

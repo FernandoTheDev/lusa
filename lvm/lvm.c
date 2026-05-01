@@ -55,7 +55,7 @@ int vm_run(const char* filepath){
     //Le a quantidade de floats
     double float_pool[100];
     int read_flt_count = 0;
-    fread(&read_flt_count, sizeof(double), read_flt_count, file);
+    fread(&read_flt_count, sizeof(int), 1, file);
 
     // 5. Se tiver float, le e joga no array 'float_pool'
     if (read_flt_count > 0){
@@ -113,7 +113,7 @@ int vm_run(const char* filepath){
                 int64_t idx1 = reg[rB];
                 int64_t idx2 = reg[rC];
                 if(idx1 < 0 || idx1 >= read_str_count || idx2 < 0 || idx2 >= read_str_count){
-                    printf("[LVM]\033ERRO FATAL:\033 Indice de string invalido na comparacao");
+                    printf("[LVM] \033[1;31m ERRO FATAL:\033[1;0m Indice de string invalido na comparacao");
                     isRunning = 0;
                     break;
                 }
@@ -157,7 +157,7 @@ int vm_run(const char* filepath){
                 } else if (rB == 2) {
                     int64_t idx = reg[rC];
                     if (idx < 0 || idx >= read_str_count){
-                        printf("[VM] \033ERRO FATAL:\033 Tentativa de imprimir string inexistente (Index: %" PRId64 ")\n", idx);
+                        printf("[VM] \033[1;31m ERRO FATAL:\033[1;0m Tentativa de imprimir string inexistente (Index: %" PRId64 ")\n", idx);
                         isRunning = 0;
                         break;
                     }
@@ -175,7 +175,7 @@ int vm_run(const char* filepath){
             case LOAD_FLT:{
                 uint16_t idx = (rB << 8) | rC;
                 if (idx >= read_flt_count || idx >= 100){
-                    printf("[LVM]\033ERRO FATAL:\003Tentativa de leitura fora dos limites (Float Pool Index: %d)\n", idx);
+                    printf("[LVM] \033[1;31m ERRO FATAL:\033[1;0m Tentativa de leitura fora dos limites (Float Pool Index: %d)\n", idx);
                     isRunning = 0;
                     break;
                 }
@@ -195,7 +195,7 @@ int vm_run(const char* filepath){
                 int64_t tamanho = reg[rB];
 
                 if(heap_pointer + tamanho >= heap_capacity){
-                    printf("[VM] \033PANIC:\003 Out of Memory!\n");
+                    printf("[VM]\033[1;31m PANIC:\033[1;0m Out of Memory!\n");
                     isRunning = 0;
                     break;
                 }
@@ -210,7 +210,7 @@ int vm_run(const char* filepath){
                 int64_t endereco_real = base_ptr + index;
 
                 if (endereco_real < 0 || endereco_real >= heap_capacity){
-                    printf("[VM] ERRO FATAL: Segmentation Fault! (%" PRId64 ")\n", endereco_real);
+                    printf("[VM] \033[1;31m PANIC:\033[1;0m Segmentation Fault! (%" PRId64 ")\n", endereco_real);
                     isRunning = 0;
                     break;
                 }
@@ -224,7 +224,7 @@ int vm_run(const char* filepath){
                 int64_t endereco_real = base_ptr + index;
 
                 if(endereco_real < 0 || endereco_real >= heap_capacity){
-                    printf("[VM] ERRO FATAL: Segmentation Fault %" PRId64 "!\n", endereco_real);
+                    printf("[VM] \033[1;31m PANIC:\033[1;0m Segmentation Fault %" PRId64 "!\n", endereco_real);
                     isRunning = 0;
                     break;
                 }

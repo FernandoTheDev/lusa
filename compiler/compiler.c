@@ -28,6 +28,7 @@ int compile(const char* in_filepath, const char* out_filepath){
     init_lexer(temp_source);
     bc_size = 0;
     string_count = 0;
+    float_count = 0;
     symbol_counter = 0;
     next_reg_free = 0;
     func_counter = 0;
@@ -43,17 +44,19 @@ int compile(const char* in_filepath, const char* out_filepath){
 
     emit_instruction(HALT, 0, 0, 0);
 
-    FILE* file_out;
-    if(lusa_fopen(&file_out, out_filepath, "wb") == 0 && file_out != NULL){
-        fwrite(&bc_size, sizeof(int), 1, file_out);
-        fwrite(bytecode, sizeof(uint32_t), bc_size, file_out);
-        fwrite(&string_count, sizeof(int), 1, file_out);
-        fwrite(string_pool, sizeof(char) * 100, string_count, file_out);
-        fwrite(&float_count, sizeof(int), 1, file_out);
-        if (float_count > 0){
-            fwrite(float_pool, sizeof(double), float_count, file_out);
+    if (parser.hadError == 0){
+        FILE* file_out;
+        if(lusa_fopen(&file_out, out_filepath, "wb") == 0 && file_out != NULL){
+            fwrite(&bc_size, sizeof(int), 1, file_out);
+            fwrite(bytecode, sizeof(uint32_t), bc_size, file_out);
+            fwrite(&string_count, sizeof(int), 1, file_out);
+            fwrite(string_pool, sizeof(char) * 100, string_count, file_out);
+            fwrite(&float_count, sizeof(int), 1, file_out);
+            if (float_count > 0){
+                fwrite(float_pool, sizeof(double), float_count, file_out);
+            }
+            fclose(file_out);
         }
-        fclose(file_out);
     }
 
 
