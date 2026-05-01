@@ -43,7 +43,6 @@ print_str("Olá, Mundo!");
 Compile e execute:
 
 ```sh
-lusa build ola.lusa -o ola.lusa
 lusa run ola.lusa
 ```
 
