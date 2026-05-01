@@ -194,7 +194,7 @@ int vm_run(const char* filepath){
             case ALLOC:{
                 int64_t tamanho = reg[rB];
 
-                if(heap_pointer + tamanho >= heap_capacity){
+                if(tamanho <= 0 || heap_pointer + tamanho >= heap_capacity){
                     printf("[VM]\033[1;31m PANIC:\033[1;0m Out of Memory!\n");
                     isRunning = 0;
                     break;
@@ -209,7 +209,7 @@ int vm_run(const char* filepath){
                 int64_t index = reg[rC];
                 int64_t endereco_real = base_ptr + index;
 
-                if (endereco_real < 0 || endereco_real >= heap_capacity){
+                if (index < 0 || endereco_real < 0 || endereco_real >= heap_capacity){
                     printf("[VM] \033[1;31m PANIC:\033[1;0m Segmentation Fault! (%" PRId64 ")\n", endereco_real);
                     isRunning = 0;
                     break;
@@ -223,7 +223,7 @@ int vm_run(const char* filepath){
                 int64_t index = reg[rC];
                 int64_t endereco_real = base_ptr + index;
 
-                if(endereco_real < 0 || endereco_real >= heap_capacity){
+                if(index < 0 || endereco_real < 0 || endereco_real >= heap_capacity){
                     printf("[VM] \033[1;31m PANIC:\033[1;0m Segmentation Fault %" PRId64 "!\n", endereco_real);
                     isRunning = 0;
                     break;
