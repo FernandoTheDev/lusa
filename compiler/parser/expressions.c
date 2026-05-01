@@ -2,9 +2,11 @@
 #include <stdlib.h>
 #include <string.h>
 #include "parser.h"
+
 #include "../symtab.h"
 #include "../codegen.h"
 #include "../../lvm/lvm.h"
+#include "lusa_string.h"
 
 void expression(int target_reg);
 
@@ -21,7 +23,7 @@ void factor(int target_reg){
         case TK_ID:{
             advance();
             char target_name[50];
-            strcpy_s(target_name, 50, parser.previus.text);
+            lusa_strcpy(target_name, 50, parser.previus.text);
 
             if (parser.current.type == TK_LPAREN){
                 if (strcmp(target_name, "print") == 0){
@@ -126,7 +128,7 @@ void factor(int target_reg){
         case TK_STRING:{
             advance();
             int str_idx = string_count++;
-            strcpy_s(string_pool[str_idx], 100, parser.previus.text);
+            lusa_strcpy(string_pool[str_idx], 100, parser.previus.text);
             
             uint8_t high = (str_idx >> 8) & 0xFF;
             uint8_t low = str_idx & 0xFF;

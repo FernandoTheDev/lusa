@@ -2,12 +2,13 @@
 #include <ctype.h>
 #include <string.h>
 #include "lexer.h"
+#include "lusa_string.h"
 
 static char source[10240];
 static int counter = 0;
 
 void init_lexer(const char* source_code){
-    strcpy_s(source, sizeof(source), source_code);
+    lusa_strcpy(source, sizeof(source), source_code);
     counter = 0;
 }
 
@@ -43,11 +44,11 @@ Token next_token(){
     case '=':
         if (source[counter + 1] == '='){
             token.type = TK_EQEQ;
-            strcpy_s(token.text, sizeof(token.text), "==");
+            lusa_strcpy(token.text, sizeof(token.text), "==");
             counter += 2;
         } else {
             token.type = TK_EQUAL;
-            strcpy_s(token.text, sizeof(token.text), "=");
+            lusa_strcpy(token.text, sizeof(token.text), "=");
             counter++;
         }
         return token;
@@ -66,62 +67,62 @@ Token next_token(){
     }
     case '<':
         token.type = TK_LT;
-        strcpy_s(token.text, sizeof(token.text), "<");
+        lusa_strcpy(token.text, sizeof(token.text), "<");
         counter ++;
         return token;
     case '>':
         token.type = TK_GT;
-        strcpy_s(token.text, sizeof(token.text), ">");
+        lusa_strcpy(token.text, sizeof(token.text), ">");
         counter++;
         return token;
     case '+':
         token.type = TK_PLUS;
-        strcpy_s(token.text, sizeof(token.text), "+");
+        lusa_strcpy(token.text, sizeof(token.text), "+");
         counter++;
         return token;
     case '-':
         token.type = TK_MINUS;
-        strcpy_s(token.text, sizeof(token.text), "-");
+        lusa_strcpy(token.text, sizeof(token.text), "-");
         counter++;
         return token;
     case ';':
         token.type = TK_SEMICOLON;
-        strcpy_s(token.text, sizeof(token.text), ";");
+        lusa_strcpy(token.text, sizeof(token.text), ";");
         counter ++;
         return token;
     case '{':
         token.type = TK_LBRACE;
-        strcpy_s(token.text, sizeof(token.text), "{");
+        lusa_strcpy(token.text, sizeof(token.text), "{");
         counter++;
         return token;
     case '}':
         token.type = TK_RBRACE;
-        strcpy_s(token.text, sizeof(token.text), "}");
+        lusa_strcpy(token.text, sizeof(token.text), "}");
         counter++;
         return token;
     case '(':
         token.type = TK_LPAREN;
-        strcpy_s(token.text, sizeof(token.text), "(");
+        lusa_strcpy(token.text, sizeof(token.text), "(");
         counter++;
         return token;
     case ')':
         token.type = TK_RPAREN;
-        strcpy_s(token.text, sizeof(token.text), ")");
+        lusa_strcpy(token.text, sizeof(token.text), ")");
         counter++;
         return token;
     case ',':
         token.type = TK_COMMA;
-        strcpy_s(token.text, sizeof(token.text), ",");
+        lusa_strcpy(token.text, sizeof(token.text), ",");
         counter++;
         return token;
     case '[':
         token.type = TK_LBRACKET;
-        strcpy_s(token.text, sizeof(token.text), "[");
+        lusa_strcpy(token.text, sizeof(token.text), "[");
         counter++;
         return token;
     case ']':
         token.type = TK_RBRACKET;
-        strcpy_s(token.text, sizeof(token.text), "]");
+        lusa_strcpy(token.text, sizeof(token.text), "]");
         counter++;
         return token;
     }

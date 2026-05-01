@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include "symtab.h"
+#include "lusa_string.h"
 
 Function func_table[100];
 int func_counter = 0;
@@ -27,7 +28,7 @@ int var_register(const char* name, int tipo){
         return -1;
     }
 
-    strcpy_s(table[symbol_counter].name, 50, name);
+    lusa_strcpy(table[symbol_counter].name, 50, name);
     table[symbol_counter].reg_id = next_reg_free;
     table[symbol_counter].tipo = tipo;
 

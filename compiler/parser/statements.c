@@ -1,14 +1,16 @@
 #include <stdio.h>
 #include "parser.h"
+
 #include "../../lvm/lvm.h"
 #include "../symtab.h"
 #include "../codegen.h"
+#include "lusa_string.h"
 
 static inline void var_declaration(){
     consume(TK_ID, "Esperava o nome de variavel apos 'var'.");
 
     char var_name[50];
-    strcpy_s(var_name, 50, parser.previus.text);
+    lusa_strcpy(var_name, 50, parser.previus.text);
 
     int tipo_var = TK_INT;
 
@@ -32,7 +34,7 @@ static inline void var_declaration(){
     consume(TK_SEMICOLON, "Esperava ';' no final da declaracao");
 }
 
-static void statement();
+void statement();
 
 static void find_while(){
     advance();
@@ -110,7 +112,7 @@ static void find_if(){
 
 static void assignment() {
     char target_name[50];
-    strcpy_s(target_name, 50, parser.current.text);
+    lusa_strcpy(target_name, 50, parser.current.text);
     advance(); 
     
     if (parser.current.type == TK_LPAREN) {
@@ -226,13 +228,13 @@ static void function_declaration(){
     consume(TK_ID, "Esperava o nome da funcao.");
 
     char fn_name[50];
-    strcpy_s(fn_name, 50, parser.previus.text);
+    lusa_strcpy(fn_name, 50, parser.previus.text);
 
     int jump_over = bc_size;
     emit_instruction(JMP, 0, 0, 0);
 
     int fn_index = func_counter++;
-    strcpy_s(func_table[fn_index].name, 50, fn_name);
+    lusa_strcpy(func_table[fn_index].name, 50, fn_name);
     func_table[fn_index].start_pc = bc_size;
     func_table[fn_index].arity = 0;
 
@@ -246,7 +248,7 @@ static void function_declaration(){
 
             consume(TK_ID, "Esperava nome do parametro");
             char param_name[50];
-            strcpy_s(param_name, 50, parser.previus.text);
+            lusa_strcpy(param_name, 50, parser.previus.text);
 
             int tipo_param = TK_INT;
             if (parser.current.type == TK_INT || parser.current.type == TK_FLOAT){

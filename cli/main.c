@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include "../compiler/compiler.h"
 #include "../lvm/lvm.h"
+#include "lusa_utils.h"
 
 #define LUSA_MAGIC 0x4C555341
 
@@ -50,19 +51,19 @@ void print_manual() {
 
 int build_executable(const char* current_exe, const char* bc_file, const char* out_exe){
     FILE* f_exe;
-    if(fopen_s(&f_exe, current_exe, "rb") != 0 || !f_exe){
+    if(lusa_fopen(&f_exe, current_exe, "rb") != 0 || !f_exe){
         printf("ERRO: Nao foi possivel ler o compilador base '%s'.\n", current_exe);
         return -1;
     }
 
     FILE* f_bc;
-    if (fopen_s(&f_bc, bc_file, "rb") != 0 || !f_bc){
+    if (lusa_fopen(&f_bc, bc_file, "rb") != 0 || !f_bc){
         fclose(f_exe);
         return -1;
     }
 
     FILE* f_out;
-    if (fopen_s(&f_out, out_exe, "wb") != 0 || !f_out){
+    if (lusa_fopen(&f_out, out_exe, "wb") != 0 || !f_out){
         fclose(f_exe); fclose(f_bc);
         return -1;
     }
@@ -89,7 +90,7 @@ int build_executable(const char* current_exe, const char* bc_file, const char* o
 
 int check_embedded_and_run(const char* current_exe){
     FILE* f;
-    if(fopen_s(&f, current_exe, "rb") != 0 || !f) return 0;
+    if(lusa_fopen(&f, current_exe, "rb") != 0 || !f) return 0;
     fseek(f, -8, SEEK_END);
 
     uint32_t bc_size = 0;
@@ -101,7 +102,7 @@ int check_embedded_and_run(const char* current_exe){
         fseek(f, -(8 + bc_size), SEEK_END);
 
         FILE* f_tmp;
-        if(fopen_s(&f_tmp, "embedded_temp.bc", "wb") == 0 && f_tmp){
+        if(lusa_fopen(&f_tmp, "embedded_temp.bc", "wb") == 0 && f_tmp){
             char buffer[4096];
             uint32_t left = bc_size;
             while (left > 0){

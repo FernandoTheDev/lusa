@@ -1,7 +1,9 @@
 #include <stdio.h>
 #include <stdint.h>
+#include <inttypes.h>
 
 #include "lvm.h"
+#include "lusa_utils.h"
 
 #define GET_OPCODE(inst) ((inst >> 24) & 0xFF)
 #define GET_REGA(inst) ((inst >> 16) & 0xFF)
@@ -19,7 +21,7 @@ int vm_run(const char* filepath){
 
     char strings[100][100];
 
-    int heap_capacity = 2048 * 2048;
+    int heap_capacity = 4096 * 4096;
     int64_t* heap = (int64_t*)calloc(heap_capacity, sizeof(int64_t));
     int heap_pointer = 0;
     if (heap == NULL){
@@ -28,7 +30,7 @@ int vm_run(const char* filepath){
     }
 
     FILE* file;
-    if (fopen_s(&file, filepath, "rb") != 0 || file == NULL){
+    if (lusa_fopen(&file, filepath, "rb") != 0 || file == NULL){
         printf("[LVM] ERRO: Nao foi possivel abrir o arquivo '%s'\n", filepath);
         return -1;
     }
@@ -125,7 +127,7 @@ int vm_run(const char* filepath){
             }
             case CALL_EXT:{
                 if (rB == 1){
-                    printf("%lld\n", reg[rC]);
+                    printf("%" PRId64 "\n", reg[rC]);
                 } else if (rB == 2) {
                     printf("%s\n", (char*)reg[rC]);
                 } else {
@@ -165,7 +167,7 @@ int vm_run(const char* filepath){
                 int64_t endereco_real = base_ptr + index;
 
                 if (endereco_real < 0 || endereco_real >= heap_capacity){
-                    printf("[VM] ERRO FATAL: Segmentation Fault! (%lld)\n", endereco_real);
+                    printf("[VM] ERRO FATAL: Segmentation Fault! (%" PRId64 ")\n", endereco_real);
                     isRunning = 0;
                     break;
                 }
@@ -179,7 +181,7 @@ int vm_run(const char* filepath){
                 int64_t endereco_real = base_ptr + index;
 
                 if(endereco_real < 0 || endereco_real >= heap_capacity){
-                    printf("[VM] ERRO FATAL: Segmentation Fault %lld!\n", endereco_real);
+                    printf("[VM] ERRO FATAL: Segmentation Fault %" PRId64 "!\n", endereco_real);
                     isRunning = 0;
                     break;
                 }
@@ -188,7 +190,7 @@ int vm_run(const char* filepath){
                 break;
             }
             default:
-                printf("ERRO: Instrucao desconhecida (%d) no PC: %lld\n", op, pc);
+                printf("ERRO: Instrucao desconhecida (%d) no PC: %" PRId64 "\n", op, pc);
                 isRunning = 0;
                 break;
         }   
