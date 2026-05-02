@@ -188,7 +188,7 @@ int vm_execute_module(LusaModule* module){
                 break;
             }
             case ALLOC:{
-                int64_t tamanho = reg[rB];
+                uint64_t tamanho = reg[rB];
 
                 if(tamanho <= 0 || heap_pointer + tamanho >= heap_capacity){
                     printf("[VM]\033[1;31mPANIC:\033[1;0m Out of Memory!\n");
@@ -203,7 +203,7 @@ int vm_execute_module(LusaModule* module){
             case STORE:{
                 int64_t base_ptr = reg[rB];
                 int64_t index = reg[rC];
-                int64_t endereco_real = base_ptr + index;
+                uint64_t endereco_real = base_ptr + index;
 
                 if (index < 0 || endereco_real < 0 || endereco_real >= heap_capacity){
                     printf("[VM] \033[1;31mPANIC:\033[1;0m Segmentation Fault! (%" PRId64 ")\n", endereco_real);
@@ -217,7 +217,7 @@ int vm_execute_module(LusaModule* module){
             case READ:{
                 int64_t base_ptr = reg[rB];
                 int64_t index = reg[rC];
-                int64_t endereco_real = base_ptr + index;
+                uint64_t endereco_real = base_ptr + index;
 
                 if(index < 0 || endereco_real < 0 || endereco_real >= heap_capacity){
                     printf("[VM] \033[1;31mPANIC:\033[1;0m Segmentation Fault %" PRId64 "!\n", endereco_real);
@@ -239,7 +239,7 @@ int vm_execute_module(LusaModule* module){
                 const char* s1 = module->strings[idx1];
                 const char* s2 = module->strings[idx2];
                 size_t new_size = strlen(s1) + strlen (s2) + 1;
-                int64_t elements = (new_size + 7) / 8;
+                uint64_t elements = (new_size + 7) / 8;
 
                 if (heap_pointer + elements >= heap_capacity){
                     printf("[VM]\033[1;31mPANIC:\033[0m Heap cheio para concatenação!\n");
