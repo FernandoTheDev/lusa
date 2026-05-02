@@ -3,7 +3,7 @@
 > **Uma linguagem de programação direta, rápida e sem enrolação.**
 
 [![Status](https://img.shields.io/badge/status-alpha-orange)]()
-[![Versão](https://img.shields.io/badge/versão-0.0.1-blue)]()
+[![Versão](https://img.shields.io/badge/versão-0.0.2-blue)]()
 [![Licença](https://img.shields.io/badge/licença-MIT-green)]()
 
 ---

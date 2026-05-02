@@ -29,7 +29,7 @@ int vm_execute_module(LusaModule* module){
     int64_t reg[256] = {0};
     int64_t pc = 0;
     uint64_t call_stack[256] = {0};
-    int sp = 0;
+    size_t sp = 0;
 
     int heap_capacity = 8196 * 8196;
     int64_t* heap = (int64_t*)calloc(heap_capacity, sizeof(int64_t));
@@ -149,9 +149,9 @@ int vm_execute_module(LusaModule* module){
                             break;
                         }
                         printf("%s\n", module->strings[val]);
-                } else {
-                    int heap_idx = val - module->string_count;
-                    if (heap_idx < 0 || heap_idx >= module->string_count){
+                    } else {
+                    uint64_t heap_idx = val - module->string_count;
+                    if (heap_idx < 0 || heap_idx >= heap_capacity){
                         printf("[VM] \033[1;31mERRO:\033[0m Acesso inválido ao Heap no endereço: %" PRId64 "\n", val);
                             isRunning = 0;
                         } else {
@@ -278,12 +278,28 @@ int vm_run(const char* filepath){
     LusaModule* module = malloc(sizeof(LusaModule));
 
     fread(&module->code_size, sizeof(int), 1, file);
-    module->code = malloc(sizeof(uint32_t) * module->code_size);
-    fread(module->code, sizeof(uint32_t), module->code_size, file);
-
+    if (module->code_size <= 0 || module->code_size > 1000000) {
+        printf("[LVM] ERRO: Tamanho de código inválido ou suspeito.\n");
+        fclose(file); return -1;
+    } else {
+        module->code = malloc(sizeof(uint32_t) * module->code_size);
+        fread(module->code, sizeof(uint32_t), module->code_size, file);
+    }
+    
     fread(&module->string_count, sizeof(int), 1, file);
-    module->strings = malloc(sizeof(char[1000]) * module->string_count);
-    fread(module->strings, sizeof(char[1000]), module->string_count, file);
+    if (module->string_count < 0 || module->string_count > 5000) {
+        printf("[LVM] ERRO: Tabela de strings excede os limites de segurança.\n");
+        fclose(file); return -1;
+    } else {
+        module->strings = malloc(sizeof(char[1000]) * module->string_count);
+        if (!module->strings) {
+            printf("[LVM] ERRO: Falha crítica de memória (Out of Memory).\n");
+            free(module);
+            fclose(file); return -1;
+        } else {
+            fread(module->strings, sizeof(char[1000]), module->string_count, file);
+        }
+    }
 
     fread(&module->float_count, sizeof(int), 1, file);
     if (module->float_count > 0){

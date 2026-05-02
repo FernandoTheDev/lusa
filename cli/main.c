@@ -64,7 +64,6 @@ int check_embedded_and_run(const char* current_exe){
 
     if(magic == LUSA_MAGIC){
         fseek(f, -(8 + bc_size), SEEK_END);
-        LusaModule module;
 
         uint8_t* buffer = malloc(bc_size);
         fread(buffer, 1, bc_size, f);
