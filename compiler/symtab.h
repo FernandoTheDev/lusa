@@ -12,13 +12,13 @@ typedef struct {
     char name[50];
     int start_pc;
     int arity;
-    int param_reg[10];
+    int param_reg[25];
 } Function;
 
-extern Function func_table[100];
+extern Function func_table[256];
 extern int func_counter;
 
-extern symbol table[256];
+extern symbol table[512];
 extern int symbol_counter;
 extern int next_reg_free;
 

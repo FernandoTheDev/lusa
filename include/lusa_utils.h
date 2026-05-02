@@ -2,6 +2,17 @@
 
 #include <stdio.h>
 
+#define LUSA_MAGIC 0x4C555341
+
+typedef struct {
+    uint32_t* code;
+    int code_size;
+    char (*strings)[1000];
+    int string_count;
+    double* floats;
+    int float_count;
+} LusaModule;
+
 static inline int lusa_fopen(FILE** file, const char* path, const char* mode){
     #ifdef _WIN32
         return fopen_s(file, path, mode);

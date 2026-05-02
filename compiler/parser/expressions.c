@@ -135,7 +135,7 @@ int factor(int target_reg){
         case TK_STRING:{
             advance();
             int str_idx = string_count++;
-            lusa_strcpy(string_pool[str_idx], 100, parser.previous.text);
+            lusa_strcpy(string_pool[str_idx], 1000, parser.previous.text);
             
             uint8_t high = (str_idx >> 8) & 0xFF;
             uint8_t low = str_idx & 0xFF;
@@ -216,8 +216,8 @@ int term(int target_reg){
             }
             left_type = TK_INT;
         } else if (left_type == TK_STRING && right_type == TK_STRING && operator_type == TK_PLUS){
-            printf("[COMPILADOR] \033[1;33mAVISO:\033[0m Concatenacao de strings (+) ainda nao implementada.\n");
-            parser.hadError = 1;
+            emit_instruction(SCAT, target_reg, target_reg, temp_reg);
+            left_type = TK_STRING;
         } else {
             printf("[COMPILADOR] \033[1;31mERRO:\033[0m Operacao invalida entre tipos.\n");
             parser.hadError = 1;

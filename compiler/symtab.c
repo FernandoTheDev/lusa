@@ -2,10 +2,10 @@
 #include "symtab.h"
 #include "lusa_string.h"
 
-Function func_table[100];
+Function func_table[256];
 int func_counter = 0;
 
-symbol table[256];
+symbol table[512];
 int symbol_counter = 0;
 int next_reg_free = 1;
 

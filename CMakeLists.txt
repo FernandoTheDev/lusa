@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.28)
 
-project(LusaLang VERSION 0.0.1 LANGUAGES C)
+project(LusaLang VERSION 0.0.2 LANGUAGES C)
 
 set(CMAKE_C_STANDARD 23)
 set(CMAKE_C_STANDARD_REQUIRED True)

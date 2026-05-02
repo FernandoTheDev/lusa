@@ -1,8 +1,8 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <inttypes.h>
-#include <string.h>
 
+#include "lusa_string.h"
 #include "lvm.h"
 #include "lusa_utils.h"
 
@@ -10,63 +10,44 @@
 #define GET_REGA(inst) ((inst >> 16) & 0xFF)
 #define GET_REGB(inst) ((inst >> 8) & 0xFF)
 #define GET_REGC(inst) (inst & 0xFF)
- 
-int vm_run(const char* filepath){
-    
-    uint32_t program[1024] = {0};
+
+void free_lusa_module(LusaModule* module) {
+    if (module == NULL) return;
+    if (module->code) free(module->code);
+    if (module->strings) free(module->strings);
+    if (module->floats) free(module->floats);
+    free(module);
+}
+
+
+int vm_execute_module(LusaModule* module){
+    if(module == NULL || module->code == NULL){
+        printf("[LVM] \033[1;31mERRO FATAL:\033[0m Tentativa de executar modulo nulo.\n");
+        return -1;
+    }
+
     int64_t reg[256] = {0};
     int64_t pc = 0;
-
     uint64_t call_stack[256] = {0};
     int sp = 0;
 
-    char strings[100][100];
-
-    int heap_capacity = 8192 * 8192;
+    int heap_capacity = 8196 * 8196;
     int64_t* heap = (int64_t*)calloc(heap_capacity, sizeof(int64_t));
     int heap_pointer = 0;
+
     if (heap == NULL){
-        printf("[VM] ERRO FATAL: Falha ao alocar memoria para o Heap.\n");
+        printf("[VM] \033[1;31mERRO FATAL:\033[0m Falha ao alocar memoria para o Heap.\n");
         return -1;
     }
-
-    FILE* file;
-    if (lusa_fopen(&file, filepath, "rb") != 0 || file == NULL){
-        printf("[LVM] ERRO: Nao foi possivel abrir o arquivo '%s'\n", filepath);
-        return -1;
-    }
-
-    // 1. Lê a quantidade de bytecodes
-    int lido_bc_size = 0;
-    fread(&lido_bc_size, sizeof(int), 1, file);
-    
-    // 2. Lê os bytecodes e joga no array 'program'
-    fread(program, sizeof(uint32_t), lido_bc_size, file);
-
-    // 3. Lê a quantidade de textos
-    int read_str_count = 0;
-    fread(&read_str_count, sizeof(int), 1, file);
-
-    // 4. Se tiver textos, lê e joga na matriz 'strings'
-    if (read_str_count > 0) {
-        fread(strings, sizeof(char) * 100, read_str_count, file);
-    }
-
-    //Le a quantidade de floats
-    double float_pool[100];
-    int read_flt_count = 0;
-    fread(&read_flt_count, sizeof(int), 1, file);
-
-    // 5. Se tiver float, le e joga no array 'float_pool'
-    if (read_flt_count > 0){
-        fread(float_pool, sizeof(double), read_flt_count, file);
-    }
-
-    fclose(file);
 
     int isRunning = 1;
     while(isRunning){
-        uint32_t instruction = program[pc];
+        if(pc >= module->code_size){
+            printf("[LVM] \033[1;31mERRO:\033[0m contador fora dos limites do programa.\n");
+            break;
+        }
+
+        uint32_t instruction = module->code[pc];
         uint8_t op = GET_OPCODE(instruction);
         uint8_t rA = GET_REGA(instruction);
         uint8_t rB = GET_REGB(instruction);
@@ -77,7 +58,7 @@ int vm_run(const char* filepath){
                 isRunning = 0;
                 break;
             case LOAD:
-                uint16_t valor = (rB << 8) | rC;
+                uint16_t valor = (uint16_t)((rB << 8) | rC);
                 reg[rA] = valor;
                 break;
             case MOV:
@@ -112,12 +93,12 @@ int vm_run(const char* filepath){
             case CMP:{
                 int64_t idx1 = reg[rB];
                 int64_t idx2 = reg[rC];
-                if(idx1 < 0 || idx1 >= read_str_count || idx2 < 0 || idx2 >= read_str_count){
+                if(idx1 < 0 || idx1 >= module->string_count || idx2 < 0 || idx2 >= module->string_count){
                     printf("[LVM] \033[1;31m ERRO FATAL:\033[1;0m Indice de string invalido na comparacao");
                     isRunning = 0;
                     break;
                 }
-                if (strcmp(strings[idx1], strings[idx2]) == 0){
+                if (strcmp(module->strings[idx1], module->strings[idx2]) == 0){
                     reg[rA] = 1;
                 } else {
                     reg[rA] = 0;
@@ -160,13 +141,23 @@ int vm_run(const char* filepath){
                 if (rB == 1){
                     printf("%" PRId64 "\n", reg[rC]);
                 } else if (rB == 2) {
-                    int64_t idx = reg[rC];
-                    if (idx < 0 || idx >= read_str_count){
-                        printf("[VM] \033[1;31mERRO FATAL:\033[1;0m Tentativa de imprimir string inexistente (Index: %" PRId64 ")\n", idx);
-                        isRunning = 0;
-                        break;
+                    int64_t val = reg[rC];
+                    if (val < module->string_count){
+                        if (val < 0 || val >= module->string_count){
+                            printf("[VM] \033[1;31mERRO FATAL:\033[1;0m Tentativa de imprimir string inexistente (Index: %" PRId64 ")\n", val);
+                            isRunning = 0;
+                            break;
+                        }
+                        printf("%s\n", module->strings[val]);
+                } else {
+                    int heap_idx = val - module->string_count;
+                    if (heap_idx < 0 || heap_idx >= module->string_count){
+                        printf("[VM] \033[1;31mERRO:\033[0m Acesso inválido ao Heap no endereço: %" PRId64 "\n", val);
+                            isRunning = 0;
+                        } else {
+                            printf("%s\n", (char*)&heap[heap_idx]);
+                        }
                     }
-                    printf("%s\n", (char*)strings[idx]);
                 } else if (rB == 3){
                     double val = *((double*)&reg[rC]);
                     printf("%f\n", val);
@@ -179,12 +170,12 @@ int vm_run(const char* filepath){
             }
             case LOAD_FLT:{
                 uint16_t idx = (rB << 8) | rC;
-                if (idx >= read_flt_count || idx >= 100){
+                if (module->floats == NULL || idx >= module->float_count){
                     printf("[LVM] \033[1;31mERRO FATAL:\033[1;0m Tentativa de leitura fora dos limites (Float Pool Index: %d)\n", idx);
                     isRunning = 0;
                     break;
                 }
-                double value = float_pool[idx];
+                double value = module->floats[idx];
                 reg[rA] = *((int64_t*)&value);
                 break;
             }
@@ -237,6 +228,34 @@ int vm_run(const char* filepath){
                 reg[rA] = heap[endereco_real];
                 break;
             }
+            case SCAT:{
+                int64_t idx1 = reg[rB];
+                int64_t idx2 = reg[rC];
+                if(idx1 < 0 || idx1 >= module->string_count || idx2 < 0 || idx2 >= module->string_count){
+                    printf("[LVM] \033[1;31mERRO FATAL:\033[0m Índice de string inválido na concatenação.\n");
+                    isRunning = 0;
+                    break;
+                }
+                const char* s1 = module->strings[idx1];
+                const char* s2 = module->strings[idx2];
+                size_t new_size = strlen(s1) + strlen (s2) + 1;
+                int64_t elements = (new_size + 7) / 8;
+
+                if (heap_pointer + elements >= heap_capacity){
+                    printf("[VM]\033[1;31mPANIC:\033[0m Heap cheio para concatenação!\n");
+                    isRunning = 0;
+                    break;
+                }
+
+                reg[rA] = heap_pointer + module->string_count;
+
+                char* destino = (char*)&heap[heap_pointer];
+                lusa_strcpy(destino, new_size, s1);
+                lusa_strcat(destino, new_size, s2);
+
+                heap_pointer += elements;
+                break;
+            }
             default:
                 printf("ERRO: Instrucao desconhecida (%d) no PC: %" PRId64 "\n", op, pc);
                 isRunning = 0;
@@ -247,4 +266,66 @@ int vm_run(const char* filepath){
     }
     free(heap);
     return 0;
+}
+
+int vm_run(const char* filepath){
+    FILE* file;
+    if(lusa_fopen(&file, filepath, "rb") != 0) {
+        printf("\033[1;31mERRO FATAL:\033[0m nao foi possivel iniciar a VM.");
+        return -1;
+    }
+
+    LusaModule* module = malloc(sizeof(LusaModule));
+
+    fread(&module->code_size, sizeof(int), 1, file);
+    module->code = malloc(sizeof(uint32_t) * module->code_size);
+    fread(module->code, sizeof(uint32_t), module->code_size, file);
+
+    fread(&module->string_count, sizeof(int), 1, file);
+    module->strings = malloc(sizeof(char[1000]) * module->string_count);
+    fread(module->strings, sizeof(char[1000]), module->string_count, file);
+
+    fread(&module->float_count, sizeof(int), 1, file);
+    if (module->float_count > 0){
+        module->floats = malloc(sizeof(double) * module->float_count);
+        fread(module->floats, sizeof(double), module->float_count, file);
+    } else module->floats = NULL;
+
+    fclose(file);
+
+    int result = vm_execute_module(module);
+    free_lusa_module(module);
+    return result;
+}
+
+// lvm/lvm.c
+void vm_execute_from_buffer(unsigned char* buffer, uint32_t size) {
+    if(buffer == NULL || size == 0){
+        printf("[LVM] \033[1;31mERRO:\033[0m Buffer de bytecode inválido.\n");
+        return;
+    }
+
+    LusaModule module = {0};
+    uint32_t offset = 0;
+
+    module.code_size = *(int*)(buffer + offset);
+    offset += sizeof(int);
+    module.code = (uint32_t*)(buffer + offset);
+    offset += sizeof(uint32_t) * module.code_size;
+    
+    module.string_count = *(int*)(buffer + offset);
+    offset += sizeof(int);
+    module.strings = (char (*)[1000])(buffer + offset);
+    offset += sizeof(char[1000]) * module.string_count;
+
+    module.float_count = *(int*)(buffer + offset);
+    offset += sizeof(int);
+    if (module.float_count > 0) {
+        module.floats = (double*)(buffer + offset);
+    } else {
+        module.floats = NULL;
+    }
+
+    vm_execute_module(&module);
+    
 }

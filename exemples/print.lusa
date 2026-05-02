@@ -1,3 +1,8 @@
 var saudacao = "Ola, Mundo da LusaLang!";
 print(saudacao);
 print("Isso deveria imprimir alguma coisa");
+
+var a = "Ola ";
+var b = "Lusa!";
+var c = a + b;
+print(c);

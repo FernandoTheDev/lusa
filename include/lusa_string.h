@@ -17,3 +17,11 @@ static inline void lusa_strcpy(char* dest, size_t dest_size, const char* src){
         dest[i] = '\0';
     #endif
 }
+
+static inline void lusa_strcat(char* dest, size_t dest_size, const char* src){
+    #ifdef _WIN32
+    strcat_s(dest, dest_size, src);
+    #else
+    strncat(dest, src, dest_size);
+    #endif
+}
