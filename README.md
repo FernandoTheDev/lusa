@@ -37,7 +37,7 @@ A premissa é que você não deveria ter que escolher entre clareza e velocidade
 Crie um arquivo `ola.lusa`:
 
 ```lusa
-print_str("Olá, Mundo!");
+print("Olá, Mundo!");
 ```
 
 Compile e execute:
