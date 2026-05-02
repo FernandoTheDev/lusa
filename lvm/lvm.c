@@ -31,7 +31,7 @@ int vm_execute_module(LusaModule* module){
     uint64_t call_stack[256] = {0};
     size_t sp = 0;
 
-    int heap_capacity = 8196 * 8196;
+    uint64_t heap_capacity = 8196 * 8196;
     int64_t* heap = (int64_t*)calloc(heap_capacity, sizeof(int64_t));
     int heap_pointer = 0;
 
