@@ -82,8 +82,8 @@ fn soma(a int, b int) {
 }
 
 fn saudacao(nome string) {
-    print_str("Olá, ");
-    print_str(nome);
+    print("Olá, ");
+    print(nome);
 }
 ```
 
@@ -106,9 +106,9 @@ saudacao("Mundo");
 var x int = 10;
 
 if x == 10 {
-    print_str("x é dez");
+    print("x é dez");
 } else {
-    print_str("x é outro valor");
+    print("x é outro valor");
 }
 ```
 
@@ -116,11 +116,11 @@ Encadeamento com `else if`:
 
 ```lusa
 if x < 0 {
-    print_str("negativo");
+    print("negativo");
 } else if x == 0 {
-    print_str("zero");
+    print("zero");
 } else {
-    print_str("positivo");
+    print("positivo");
 }
 ```
 
@@ -174,12 +174,12 @@ Lusa tem duas funções nativas de output:
 | Função | Uso |
 |---|---|
 | `print(valor)` | Imprime um valor numérico ou booleano |
-| `print_str(texto)` | Imprime uma string |
+| `print(texto)` | Imprime uma string |
 
 ```lusa
 print(42);
 print(3 + 7);
-print_str("Lusa é rápida");
+print("Lusa é rápida");
 
 var x int = 100;
 print(x);
@@ -205,7 +205,7 @@ print(a + b);    // 13
 print(a - b);    // 7
 
 if a > b {
-    print_str("a é maior");
+    print("a é maior");
 }
 ```
 
@@ -229,9 +229,9 @@ fn fizz(n int) {
 
     while i < n + 1 {
         if i == 3 {
-            print_str("Fizz");
+            print("Fizz");
         } else if i == 5 {
-            print_str("Buzz");
+            print("Buzz");
         } else {
             print(i);
         }
@@ -283,7 +283,7 @@ print(fib(10));   // 55
 
 | Comando | O que faz |
 |---|---|
-| `lusa build <arquivo>.lusa -o <saida>.lusa` | Compila para bytecode |
+| `lusa build <arquivo>.lusa -o <saida>` | Compila para bytecode |
 | `lusa run <arquivo>.lusc` | Executa o bytecode compilado |
 | `lusa check <arquivo>.lusa` | Verifica erros sem compilar |
 
@@ -291,7 +291,7 @@ print(fib(10));   // 55
 
 ```sh
 # Compile
-lusa build programa.lusa -o programa.lusa
+lusa build programa.lusa -o programa
 
 # Execute
 lusa run programa.lusa
