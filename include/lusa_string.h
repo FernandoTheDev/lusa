@@ -3,6 +3,7 @@
 #include <stddef.h>
 #include <string.h>
 
+// nao precisa de uma função propria
 static inline void lusa_strcpy(char* dest, size_t dest_size, const char* src){
     if (dest_size == 0) return;
 

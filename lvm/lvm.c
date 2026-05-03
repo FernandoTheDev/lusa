@@ -268,6 +268,8 @@ int vm_execute_module(LusaModule* module){
     return 0;
 }
 
+
+// remove isso, é terrivel, mantenha tudo em memoria, a VM nunca deve ter acesso ou noção disso
 int vm_run(const char* filepath){
     FILE* file;
     if(lusa_fopen(&file, filepath, "rb") != 0) {

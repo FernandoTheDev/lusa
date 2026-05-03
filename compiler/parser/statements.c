@@ -6,36 +6,48 @@
 #include "../codegen.h"
 #include "lusa_string.h"
 
-static inline void var_declaration(){
+static inline void var_declaration()
+{
     consume(TK_ID, "Esperava o nome de variavel apos 'var'.");
 
+    // e se for maior?
     char var_name[50];
     lusa_strcpy(var_name, 50, parser.previous.text);
 
     int tipo_var = TK_INT;
 
-    if (parser.current.type == TK_INT || parser.current.type == TK_FLOAT || parser.current.type == TK_STRING || parser.current.type == TK_BOOL) {
+    if (parser.current.type == TK_INT || parser.current.type == TK_FLOAT || parser.current.type == TK_STRING || parser.current.type == TK_BOOL)
+    {
         tipo_var = parser.current.type;
         advance();
     }
 
     int reg_id = var_register(var_name, tipo_var);
 
-    
-    if (parser.current.type == TK_EQUAL){
+    if (parser.current.type == TK_EQUAL)
+    {
         advance();
-        if(reg_id != -1){
+        if (reg_id != -1)
+        {
             int real_type = expression(reg_id);
 
-            for(int i = 0; i < symbol_counter; i++){
-                if(strcmp(table[i].name, var_name) == 0){
+            // vai fazer uma busca na tabela de simbolos de forma manual? e se voce precisar do mesmo código em outro lugar no futuro?
+            // pensa em responsabilidade, cada função tem a sua, se uma função precisa de mais responsabilidades
+            // então voce cria uma nova pra resolver seu problema
+            for (int i = 0; i < symbol_counter; i++)
+            {
+                if (strcmp(table[i].name, var_name) == 0)
+                {
                     table[i].tipo = real_type;
                     break;
                 }
             }
         }
-    } else {
-        if (reg_id != -1) emit_instruction(LOAD, reg_id, 0, 0);
+    }
+    else
+    {
+        if (reg_id != -1)
+            emit_instruction(LOAD, reg_id, 0, 0);
     }
 
     consume(TK_SEMICOLON, "Esperava ';' no final da declaracao");
@@ -43,7 +55,8 @@ static inline void var_declaration(){
 
 void statement();
 
-static void find_while(){
+static void find_while()
+{
     advance();
     int loop_start = bc_size;
     int cond_reg = next_reg_free++;
@@ -52,14 +65,14 @@ static void find_while(){
     int jump_to_exit = bc_size;
     emit_instruction(JMPF, cond_reg, 0, 0);
 
+    // e se for negativo?
     next_reg_free--;
 
     consume(TK_LBRACE, "Esperava '{' apos a condicao do while.");
-    while(parser.current.type != TK_RBRACE && parser.current.type != TK_EOF){
-        statement();
-    }
+    while (parser.current.type != TK_RBRACE && parser.current.type != TK_EOF) statement();
     consume(TK_RBRACE, "Esperava '}' no final do bloco while.");
 
+    // voce calcula rB e rC de mais, muito codigo repetido, crie uma função que faça isso sem tanta cópia igual tu ta fazendo
     uint8_t rB_start = (loop_start >> 8) & 0xFF;
     uint8_t rC_start = loop_start & 0xFF;
     emit_instruction(JMP, 0, rB_start, rC_start);
@@ -71,7 +84,8 @@ static void find_while(){
     bytecode[jump_to_exit] = (JMPF << 24) | (cond_reg << 16) | (rB_exit << 8) | rC_exit;
 }
 
-static void find_if(){
+static void find_if()
+{
     advance();
 
     int cond_reg = next_reg_free++;
@@ -80,88 +94,113 @@ static void find_if(){
     int jump_index = bc_size;
     emit_instruction(JMPF, cond_reg, 0, 0);
 
+    // e se for negativo?
     next_reg_free--;
 
     consume(TK_LBRACE, "Esperava '{' apos a condicao do if.");
-
-    while (parser.current.type != TK_RBRACE && parser.current.type != TK_EOF){
-        statement();
-    }
-
+    while (parser.current.type != TK_RBRACE && parser.current.type != TK_EOF) statement();
     consume(TK_RBRACE, "Esperava '}' no final bloco if.");
 
-    if (parser.current.type == TK_ELSE){
+    if (parser.current.type == TK_ELSE)
+    {
         advance();
 
         int jump_to_end = bc_size;
         emit_instruction(JMP, 0, 0, 0);
 
         int else_start = bc_size;
+        // muita repetição
         bytecode[jump_index] = (JMPF << 24) | (cond_reg << 16) | ((else_start >> 8) & 0xFF) << 8 | (else_start & 0xFF);
 
-        if (parser.current.type == TK_IF){
+        if (parser.current.type == TK_IF)
             find_if();
-        } else {
+        else
+        {
             consume(TK_LBRACE, "Esperava '{' apos 'else'.");
-            while(parser.current.type != TK_RBRACE && parser.current.type != TK_EOF){
+            while (parser.current.type != TK_RBRACE && parser.current.type != TK_EOF)
                 statement();
-            }
             consume(TK_RBRACE, "Esperava '}' no final do bloco else.");
         }
 
+        // muita repetição
         int end_index = bc_size;
         bytecode[jump_to_end] = (JMP << 24) | (0 << 16) | ((end_index >> 8) & 0xFF) << 8 | (end_index & 0xFF);
-    } else {
+    }
+    else
+    {
+        // muita repetição
         int end_index = bc_size;
         bytecode[jump_index] = (JMPF << 24) | (cond_reg << 16) | ((end_index >> 8) & 0xFF) << 8 | (end_index & 0xFF);
     }
 }
 
-static void assignment() {
+static void assignment()
+{
     char target_name[50];
     lusa_strcpy(target_name, 50, parser.current.text);
 
-    advance(); 
-    
-    if (parser.current.type == TK_LPAREN) {
-        if (strcmp(target_name, "print") == 0) {
-            advance(); 
-            //expression(0); // <--- OLHE O ASSASSINO AQUI!
+    advance();
+
+    if (parser.current.type == TK_LPAREN)
+    {
+        if (strcmp(target_name, "print") == 0)
+        {
+            advance();
+            // expression(0); // <--- OLHE O ASSASSINO AQUI!
             int temp_reg = next_reg_free++;
             int found_type = expression(temp_reg);
             consume(TK_RPAREN, "Esperava ')' apos print.");
-            if(found_type == TK_STRING){
+            // muita repetição de código aqui
+            // {
+            if (found_type == TK_STRING)
+            {
                 emit_instruction(CALL_EXT, 0, 2, temp_reg);
-            } else if(found_type == TK_FLOAT) {
-                emit_instruction(CALL_EXT, 0, 3, temp_reg);
-            } else{
-            emit_instruction(CALL_EXT, 0, 1, temp_reg);
             }
+            else if (found_type == TK_FLOAT)
+            {
+                emit_instruction(CALL_EXT, 0, 3, temp_reg);
+            }
+            else
+            {
+                emit_instruction(CALL_EXT, 0, 1, temp_reg);
+            }
+            // }
+            // e se for negativo?
             next_reg_free--;
             consume(TK_SEMICOLON, "Esperava ';' no final do print.");
             return;
         }
-        
+
         int dest_pc = -1;
         int fn_index = -1;
-        for (int i = 0; i < func_counter; i++) {
-            if(strcmp(func_table[i].name, target_name) == 0) { 
+        // novamente uma responsabilidade que nao deveria ser dessa função
+        for (int i = 0; i < func_counter; i++)
+        {
+            if (strcmp(func_table[i].name, target_name) == 0)
+            {
                 dest_pc = func_table[i].start_pc;
                 fn_index = i;
             }
-        } 
+        }
 
-        if (dest_pc == -1) {
+        if (dest_pc == -1)
+        {
             printf("[COMPILADOR] ERRO: funcao '%s' nao existe.\n", target_name);
             parser.hadError = 1;
-        } else {
+        }
+        else
+        {
             advance();
             int args_read = 0;
-            if (parser.current.type != TK_RPAREN) {
-                do {
-                    if (parser.current.type == TK_COMMA) advance();
+            if (parser.current.type != TK_RPAREN)
+            {
+                do
+                {
+                    if (parser.current.type == TK_COMMA)
+                        advance();
 
-                    if (args_read >= func_table[fn_index].arity) {
+                    if (args_read >= func_table[fn_index].arity)
+                    {
                         printf("[COMPILADOR] ERRO: Muitos argumentos para '%s'.\n", target_name);
                         parser.hadError = 1;
                         break;
@@ -171,31 +210,35 @@ static void assignment() {
                     expression(temp_arg_reg);
                     int target_param_reg = func_table[fn_index].param_reg[args_read];
                     emit_instruction(MOV, target_param_reg, temp_arg_reg, 0);
-                    
+
                     next_reg_free--;
                     args_read++;
                 } while (parser.current.type == TK_COMMA);
             }
-            
-            if (args_read < func_table[fn_index].arity) {
+
+            if (args_read < func_table[fn_index].arity)
+            {
                 printf("[COMPILADOR] ERRO: funcao '%s' esperava %d argumentos, recebeu %d.\n", target_name, func_table[fn_index].arity, args_read);
                 parser.hadError = 1;
             }
 
             consume(TK_RPAREN, "Esperava ')' apos chamada de funcao.");
+            // calculando rB e rC manualmente de novo
             uint8_t rB = (dest_pc >> 8) & 0xFF;
             uint8_t rC = dest_pc & 0xFF;
             emit_instruction(CALL, 0, rB, rC);
         }
-        
+
         consume(TK_SEMICOLON, "Esperava ';' no final da chamada de funcao solta.");
-        return; 
-    } else if (parser.current.type == TK_LBRACKET){
+        return;
+    }
+    else if (parser.current.type == TK_LBRACKET)
+    {
         advance();
         int index_reg = next_reg_free++;
         expression(index_reg);
         consume(TK_RBRACKET, "Esperava ']' apos o indice");
-        
+
         consume(TK_EQUAL, "Esperava '=' apos o acesso de array");
 
         int val_reg = next_reg_free++;
@@ -203,48 +246,62 @@ static void assignment() {
         consume(TK_SEMICOLON, "Esperava ';' no final da atribuicao do array");
 
         int base_reg = find_var(target_name);
-        if (base_reg == -1){
+        if (base_reg == -1)
+        {
             printf("[COMPILADOR] ERRO: Variavel '%s' nao declarada.\n", target_name);
             parser.hadError = 1;
-        } else {
+        }
+        else
+        {
             emit_instruction(STORE, val_reg, base_reg, index_reg);
         }
-        
+
+        // e se for negativo?
         next_reg_free -= 2;
         return;
-    } else if (parser.current.type == TK_EQUAL) {
-        
+    }
+    else if (parser.current.type == TK_EQUAL)
+    {
+
         int reg_id = find_var(target_name);
 
-        if (reg_id == -1) {
+        if (reg_id == -1)
+        {
             printf("[COMPILADOR] ERRO: Tentando atribuir valor a variavel nao declarada '%s'.\n", target_name);
             parser.hadError = 1;
             return;
         }
 
-        advance(); 
+        advance();
         int value_type = expression(reg_id);
         consume(TK_SEMICOLON, "Esperava ';' no final da atribuicao.");
- 
-        for(int i = 0; i < symbol_counter; i++){
-            if(strcmp(table[i].name, target_name) == 0){
+
+        // problema de responsabilidade (caso isolado numero 10000000009919191092029)
+        for (int i = 0; i < symbol_counter; i++)
+        {
+            if (strcmp(table[i].name, target_name) == 0)
+            {
                 table[i].tipo = value_type;
                 break;
             }
         }
         return;
-    } else {
+    }
+    else
+    {
         printf("[COMPILADOR] ERRO de Sintaxe: O que voce quis fazer com '%s'?\n", target_name);
         parser.hadError = 1;
         advance();
     }
 }
 
-static void function_declaration(){
+// na declaração de função você não faz validação do nome pra ver se ja existe ou não
+static void function_declaration()
+{
     advance();
     consume(TK_ID, "Esperava o nome da funcao.");
 
-    char fn_name[50];
+    char fn_name[50]; // e se o nome for maior?
     lusa_strcpy(fn_name, 50, parser.previous.text);
 
     int jump_over = bc_size;
@@ -259,19 +316,25 @@ static void function_declaration(){
 
     consume(TK_LPAREN, "Esperava '(' apos o nome da funcao.");
 
-    if (parser.current.type != TK_RPAREN){
-        do {
-            if(parser.current.type == TK_COMMA) advance();
+    if (parser.current.type != TK_RPAREN)
+    {
+        do
+        {
+            if (parser.current.type == TK_COMMA)
+                advance();
 
             consume(TK_ID, "Esperava nome do parametro");
             char param_name[50];
             lusa_strcpy(param_name, 50, parser.previous.text);
 
             int tipo_param = TK_INT;
-            if (parser.current.type == TK_INT || parser.current.type == TK_FLOAT || parser.current.type == TK_STRING || parser.current.type == TK_BOOL){
+            if (parser.current.type == TK_INT || parser.current.type == TK_FLOAT || parser.current.type == TK_STRING || parser.current.type == TK_BOOL)
+            {
                 tipo_param = parser.current.type;
                 advance();
-            } else {
+            }
+            else
+            {
                 printf("[COMPILADOR] ERRO: Parametro '%s' sem tipo definido.\n", param_name);
                 parser.hadError = 1;
             }
@@ -286,42 +349,56 @@ static void function_declaration(){
     consume(TK_RPAREN, "Esperava ')'");
 
     consume(TK_LBRACE, "Esperava '{' no inicio da funcao.");
-    while(parser.current.type != TK_RBRACE && parser.current.type != TK_EOF){
-        statement();
-    }
+    while (parser.current.type != TK_RBRACE && parser.current.type != TK_EOF) statement();
     consume(TK_RBRACE, "Esperava '}' no final da funcao.");
 
     emit_instruction(RET, 0, 0, 0);
 
     symbol_counter = saved_symbol_counter;
+    // mais calculo manual
     int end_index = bc_size;
     uint8_t rB = (end_index >> 8) & 0xFF;
     uint8_t rC = end_index & 0xFF;
     bytecode[jump_over] = (JMP << 24) | (0 << 16) | (rB << 8) | rC;
 }
 
-static void return_statement(){
+static void return_statement()
+{
     advance();
     expression(0);
     emit_instruction(RET, 0, 0, 0);
     consume(TK_SEMICOLON, "Esperava ';' apos o return.");
 }
 
-void statement(){
-    if(parser.current.type == TK_VAR){
+void statement()
+{
+    if (parser.current.type == TK_VAR)
+    {
         advance();
         var_declaration();
-    }else if(parser.current.type == TK_ID){
+    }
+    else if (parser.current.type == TK_ID)
+    {
         assignment();
-    }else if(parser.current.type == TK_FN){
+    }
+    else if (parser.current.type == TK_FN)
+    {
         function_declaration();
-    }else if(parser.current.type == TK_RETURN){
+    }
+    else if (parser.current.type == TK_RETURN)
+    {
         return_statement();
-    }else if(parser.current.type == TK_IF){
+    }
+    else if (parser.current.type == TK_IF)
+    {
         find_if();
-    }else if(parser.current.type == TK_WHILE){
+    }
+    else if (parser.current.type == TK_WHILE)
+    {
         find_while();
-    }else {
+    }
+    else
+    {
         printf("[COMPILADOR] ERRO: token inesperado '%s'\n", parser.current.text);
         advance();
     }

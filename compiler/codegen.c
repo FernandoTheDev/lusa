@@ -1,12 +1,13 @@
 #include "codegen.h"
 
-uint32_t bytecode[1024];
+uint32_t bytecode[1024]; // e se for maior?
 int bc_size = 0;
 
-char string_pool[1000][1000];
+// isso é TERRÍVEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEL
+char string_pool[1000][1000]; // uso de memoria absurdamente elevado, 1000 * 1000 bytes = 1mb
 int string_count = 0;
 
-double float_pool[1000];
+double float_pool[1000]; // uso de memoria absurdo, 1000 * 8 bytes = 8kb
 int float_count = 0;
 
 void emit_instruction(uint8_t op, uint8_t rA, uint8_t rB, uint8_t rC){

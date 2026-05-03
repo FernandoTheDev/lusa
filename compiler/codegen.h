@@ -1,5 +1,7 @@
 #pragma once
 
+// reescreve tudo
+
 #include <stdint.h>
 
 extern uint32_t bytecode[1024];

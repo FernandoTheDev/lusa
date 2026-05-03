@@ -3,19 +3,20 @@
 #include <stdlib.h>
 #include "lusa_utils.h"
 
-typedef enum {
+typedef enum
+{
     HALT,
     LOAD,
     MOV,
-    ADD, 
+    ADD,
     FADD,
-    SUB, 
+    SUB,
     FSUB,
     EQ,
     CMP,
     LT,
     GT,
-    JMP, 
+    JMP,
     JMPF,
     CALL,
     CALL_EXT,
@@ -30,7 +31,7 @@ typedef enum {
     SCAT,
 } opcode;
 
-int vm_execute_module(LusaModule* module);
-void vm_execute_from_buffer(unsigned char* buffer, uint32_t size);
-void free_lusa_module(LusaModule* module);
-int vm_run(const char* filepath);
+int vm_execute_module(LusaModule *module);
+void vm_execute_from_buffer(unsigned char *buffer, uint32_t size);
+void free_lusa_module(LusaModule *module);
+int vm_run(const char *filepath);

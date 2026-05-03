@@ -2,7 +2,8 @@
 
 #include <stdint.h>
 
-typedef enum {
+typedef enum
+{
     TK_EOF,
     TK_VAR,
     TK_ID,
@@ -37,13 +38,33 @@ typedef enum {
     TK_ARRAY,
 } TokenType;
 
-typedef struct {
+typedef struct
+{
     TokenType type;
-    char text[100];
+    char text[100]; // esquece isso, 100 bytes atoa
     int line;
     int col;
 } Token;
 
-void init_lexer(const char* source_code);
+typedef struct {
+    char* data; // cria um slice diretamente do source code, não tem copia nem nada, é bem melhor
+    uint16_t len; // nenhuma string vai ter mais de 65 mil caracteres, é loucura
+} LusaStr;
+
+// essa estrutura nova gasta muito menos memoria por token, alem de ter valores especializados pra cada tipo por padrão
+typedef struct {
+    TokenType type;
+    union {
+        LusaStr str;
+        long integer;
+        double d;
+        float f;
+        char ch;
+    };
+    uint32_t line;
+    uint32_t col;
+} Token;
+
+void init_lexer(const char *source_code);
 
 Token next_token();

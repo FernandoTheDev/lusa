@@ -2,7 +2,8 @@
 
 #include "../lexer.h"
 
-typedef struct {
+typedef struct
+{
     Token current;
     Token previous;
     int hadError;
@@ -12,7 +13,7 @@ typedef struct {
 extern Parser parser;
 
 void advance();
-void consume(TokenType type, const char* message);
+void consume(TokenType type, const char *message);
 
 TokenType expression(int target_reg);
 
